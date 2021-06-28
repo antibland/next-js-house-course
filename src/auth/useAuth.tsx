@@ -14,6 +14,7 @@ import firebase from "firebase/app";
 import initFirebase from "./initFirebase";
 
 initFirebase();
+
 interface IAuthContext {
   user: firebase.User | null;
   logout: () => void;
@@ -34,8 +35,12 @@ export const AuthProvider: FunctionComponent = ({ children }) => {
     firebase
       .auth()
       .signOut()
-      .then(() => router.push("/"))
-      .catch((e) => console.error(e));
+      .then(() => {
+        router.push("/");
+      })
+      .catch((e) => {
+        console.error(e);
+      });
   };
 
   useEffect(() => {
@@ -45,6 +50,7 @@ export const AuthProvider: FunctionComponent = ({ children }) => {
         if (user) {
           const token = await user.getIdToken();
           setTokenCookie(token);
+          setUser(user);
         } else {
           removeTokenCookie();
           setUser(null);
