@@ -1,19 +1,18 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, gql } from "@apollo/client";
-// import { useRouter } from "next/router";
+import { Router, useRouter } from "next/router";
 import Link from "next/link";
 // import { Image } from "cloudinary-react";
 import { SearchBox } from "./searchBox";
-// import {
-//   CreateHouseMutation,
-//   CreateHouseMutationVariables,
-// } from "src/generated/CreateHouseMutation";
+import {
+  CreateHouseMutation,
+  CreateHouseMutationVariables,
+} from "src/generated/CreateHouseMutation";
 // import {
 //   UpdateHouseMutation,
 //   UpdateHouseMutationVariables,
 // } from "src/generated/UpdateHouseMutation";
-
 import { CreateSignatureMutation } from "src/generated/CreateSignatureMutation";
 
 const SIGNATURE_MUTATION = gql`
@@ -21,6 +20,14 @@ const SIGNATURE_MUTATION = gql`
     createImageSignature {
       signature
       timestamp
+    }
+  }
+`;
+
+const CREATE_HOUSE_MUTATION = gql`
+  mutation CreateHouseMutation($input: HouseInput!) {
+    createHouse(input: $input) {
+      id
     }
   }
 `;
@@ -35,20 +42,17 @@ async function uploadImage(
   timestamp: number
 ): Promise<IUploadImageResponse> {
   const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`;
+
   const formData = new FormData();
   formData.append("file", image);
   formData.append("signature", signature);
   formData.append("timestamp", timestamp.toString());
-  formData.append(
-    "api_key",
-    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? ""
-  );
+  formData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_KEY ?? "");
 
   const response = await fetch(url, {
-    method: "POST",
+    method: "post",
     body: formData,
   });
-
   return response.json();
 }
 
@@ -63,16 +67,20 @@ interface IFormData {
 interface IProps {}
 
 export default function HouseForm({}: IProps) {
-  const [previewImage, setPreviewImage] = useState<string>();
+  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string>();
   const { register, handleSubmit, setValue, errors, watch } = useForm<
     IFormData
   >({ defaultValues: {} });
-
   const address = watch("address");
   const [createSignature] = useMutation<CreateSignatureMutation>(
     SIGNATURE_MUTATION
   );
+  const [createHouse] = useMutation<
+    CreateHouseMutation,
+    CreateHouseMutationVariables
+  >(CREATE_HOUSE_MUTATION);
 
   useEffect(() => {
     register({ name: "address" }, { required: "Please enter your address" });
@@ -85,11 +93,29 @@ export default function HouseForm({}: IProps) {
     if (signatureData) {
       const { signature, timestamp } = signatureData.createImageSignature;
       const imageData = await uploadImage(data.image[0], signature, timestamp);
+
+      const { data: houseData } = await createHouse({
+        variables: {
+          input: {
+            address: data.address,
+            image: imageData.secure_url,
+            coordinates: {
+              latitude: data.latitude,
+              longitude: data.longitude,
+            },
+            bedrooms: parseInt(data.bedrooms, 10),
+          },
+        },
+      });
+
+      if (houseData?.createHouse) {
+        router.push(`/houses/${houseData.createHouse.id}`);
+      }
     }
   };
 
   const onSubmit = (data: IFormData) => {
-    setSubmitting(true);
+    setSubmitting(false);
     handleCreate(data);
   };
 
@@ -119,14 +145,20 @@ export default function HouseForm({}: IProps) {
               htmlFor="image"
               className="p-4 border-dashed border-4 border-gray-600 block cursor-pointer"
             >
-              Click to add image 16:9
+              Click to add image (16:9)
             </label>
             <input
-              type="file"
-              name="image"
               id="image"
+              name="image"
+              type="file"
               accept="image/*"
               style={{ display: "none" }}
+              ref={register({
+                validate: (fileList: FileList) => {
+                  if (fileList.length === 1) return true;
+                  return "Please upload one file";
+                },
+              })}
               onChange={(event: ChangeEvent<HTMLInputElement>) => {
                 if (event?.target?.files?.[0]) {
                   const file = event.target.files[0];
@@ -137,17 +169,10 @@ export default function HouseForm({}: IProps) {
                   reader.readAsDataURL(file);
                 }
               }}
-              ref={register({
-                validate: (filelist: FileList) => {
-                  if (filelist.length === 1) return true;
-                  return "Please upload one file";
-                },
-              })}
             />
             {previewImage && (
               <img
                 src={previewImage}
-                alt=""
                 className="mt-4 object-cover"
                 style={{ width: "576px", height: `${(9 / 16) * 576}px` }}
               />
@@ -160,17 +185,14 @@ export default function HouseForm({}: IProps) {
               Beds
             </label>
             <input
-              type="number"
-              name="bedrooms"
               id="bedrooms"
+              name="bedrooms"
+              type="number"
               className="p-2"
               ref={register({
                 required: "Please enter the number of bedrooms",
-                max: { value: 10, message: "That's too many bedrooms—sorry" },
-                min: {
-                  value: 1,
-                  message: "That's too thin in the bedroom department",
-                },
+                max: { value: 10, message: "Wooahh, too big of a house" },
+                min: { value: 1, message: "Must have at least 1 bedroom" },
               })}
             />
             {errors.bedrooms && <p>{errors.bedrooms.message}</p>}
@@ -185,7 +207,7 @@ export default function HouseForm({}: IProps) {
               Save
             </button>{" "}
             <Link href="/">
-              <a className="ml-2">Cancel</a>
+              <a>Cancel</a>
             </Link>
           </div>
         </>
