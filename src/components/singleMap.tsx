@@ -1,7 +1,7 @@
 import { useState } from "react";
-// import Link from "next/link";
+import Link from "next/link";
 import ReactMapGL, { Marker, NavigationControl } from "react-map-gl";
-// import "mapbox-gl/dist/mapbox-gl.css";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 interface IHouse {
   id: string;
@@ -11,9 +11,10 @@ interface IHouse {
 
 interface IProps {
   house: IHouse;
+  nearby: IHouse[];
 }
 
-export default function SingleMap({ house }: IProps) {
+export default function SingleMap({ house, nearby }: IProps) {
   const [viewport, setViewport] = useState({
     latitude: house.latitude,
     longitude: house.longitude,
@@ -48,6 +49,21 @@ export default function SingleMap({ house }: IProps) {
             <img src="/home-color.svg" className="w-8" alt="selected house" />
           </button>
         </Marker>
+        {nearby.map(({ id, latitude, longitude }) => (
+          <Marker
+            key={id}
+            latitude={latitude}
+            longitude={longitude}
+            offsetLeft={-15}
+            offsetTop={-15}
+          >
+            <Link href={`/houses/${id}`}>
+              <a style={{ width: "30px", height: "30px", fontSize: "30px" }}>
+                <img src="/home-solid.svg" className="w-8" alt="nearby house" />
+              </a>
+            </Link>
+          </Marker>
+        ))}
       </ReactMapGL>
     </div>
   );
