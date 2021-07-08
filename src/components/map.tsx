@@ -55,11 +55,11 @@ export default function Map({ setDataBounds, houses }: IProps) {
             offsetTop={-15}
           >
             <button
+              onClick={() => setSelected(house)}
               style={{ width: "30px", height: "30px", fontSize: "30px" }}
               type="button"
-              onClick={() => setSelected(house)}
             >
-              <img src="/home-solid.svg" alt="house" className="w-8" />
+              <img alt="house" src="/home-solid.svg" className="w-8" />
             </button>
           </Marker>
         ))}
