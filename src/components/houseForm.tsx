@@ -121,11 +121,6 @@ export default function HouseForm({ house }: IProps) {
     UpdateHouseMutationVariables
   >(UPDATE_HOUSE_MUTATION);
 
-  const [updateHouse] = useMutation<
-    UpdateHouseMutation,
-    UpdateHouseMutationVariables
-  >(UPDATE_HOUSE_MUTATION);
-
   useEffect(() => {
     register({ name: "address" }, { required: "Please enter your address" });
     register({ name: "latitude" }, { required: true, min: -90, max: 90 });
