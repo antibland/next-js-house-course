@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "src/auth/useAuth";
 import { DeleteHouse, DeleteHouseVariables } from "src/generated/DeleteHouse";
 
-const DELETE_MUTATION = gql`
+const DELETE_HOUSE_MUTATION = gql`
   mutation DeleteHouse($id: String!) {
     deleteHouse(id: $id)
   }
@@ -24,7 +24,7 @@ export default function HouseNav({ house }: IProps) {
   const [deleteHouse, { loading }] = useMutation<
     DeleteHouse,
     DeleteHouseVariables
-  >(DELETE_MUTATION);
+  >(DELETE_HOUSE_MUTATION);
 
   return (
     <>

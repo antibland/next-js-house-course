@@ -31,22 +31,32 @@ export default function EditHouse() {
   } = useRouter();
 
   if (!id) return null;
+
   return <HouseData id={id as string} />;
 }
 
 function HouseData({ id }: { id: string }) {
   const { user } = useAuth();
+
   const { data, loading } = useQuery<EditHouseQuery, EditHouseQueryVariables>(
     EDIT_HOUSE_QUERY,
     { variables: { id } }
   );
 
-  if (!user) return <Layout main={<div>Please login</div>} />;
-  if (loading) return <Layout main={<div>loading...</div>} />;
-  if (data && !data.house)
+  if (!user) {
+    return <Layout main={<div>Please log in</div>} />;
+  }
+
+  if (loading) {
+    return <Layout main={<div>Loading…</div>} />;
+  }
+
+  if (data && !data.house) {
     return <Layout main={<div>Unable to load house</div>} />;
+  }
+
   if (user.uid !== data?.house?.userId)
-    return <Layout main={<div>You don't have permission</div>} />;
+    return <Layout main={<div>You do not have permission</div>} />;
 
   return <Layout main={<HouseForm house={data.house} />} />;
 }

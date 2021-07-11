@@ -58,6 +58,7 @@ export default function Map({ setDataBounds, houses, highlightedId }: IProps) {
                   longitude,
                   zoom: 12,
                 }));
+
                 if (mapRef.current) {
                   const bounds = mapRef.current.getMap().getBounds();
                   setDataBounds(JSON.stringify(bounds.toArray()));
@@ -66,7 +67,6 @@ export default function Map({ setDataBounds, houses, highlightedId }: IProps) {
             }}
           />
         </div>
-
         {houses.map((house) => (
           <Marker
             key={house.id}
@@ -77,17 +77,17 @@ export default function Map({ setDataBounds, houses, highlightedId }: IProps) {
             className={highlightedId === house.id ? "marker-active" : ""}
           >
             <button
+              onClick={() => setSelected(house)}
               style={{ width: "30px", height: "30px", fontSize: "30px" }}
               type="button"
-              onClick={() => setSelected(house)}
             >
               <img
+                alt="house"
                 src={
                   highlightedId === house.id
                     ? "/home-color.svg"
                     : "/home-solid.svg"
                 }
-                alt="house"
                 className="w-8"
               />
             </button>

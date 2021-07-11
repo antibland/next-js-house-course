@@ -121,6 +121,11 @@ export default function HouseForm({ house }: IProps) {
     UpdateHouseMutationVariables
   >(UPDATE_HOUSE_MUTATION);
 
+  const [updateHouse] = useMutation<
+    UpdateHouseMutation,
+    UpdateHouseMutationVariables
+  >(UPDATE_HOUSE_MUTATION);
+
   useEffect(() => {
     register({ name: "address" }, { required: "Please enter your address" });
     register({ name: "latitude" }, { required: true, min: -90, max: 90 });
@@ -191,6 +196,7 @@ export default function HouseForm({ house }: IProps) {
 
   const onSubmit = (data: IFormData) => {
     setSubmitting(false);
+
     if (!!house) {
       handleUpdate(house, data);
     } else {
@@ -259,7 +265,6 @@ export default function HouseForm({ house }: IProps) {
               />
             ) : house ? (
               <Image
-                className="mt-4"
                 cloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
                 publicId={house.publicId}
                 alt={house.address}

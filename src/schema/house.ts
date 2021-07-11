@@ -137,7 +137,7 @@ export class HouseResolver {
   }
 
   @Authorized()
-  @Mutation((_returns) => House, { nullable: true })
+  @Mutation((_return) => House, { nullable: true })
   async updateHouse(
     @Arg("id") id: string,
     @Arg("input") input: HouseInput,
@@ -161,7 +161,7 @@ export class HouseResolver {
   }
 
   @Authorized()
-  @Mutation((_returns) => Boolean, { nullable: false })
+  @Mutation((_return) => Boolean, { nullable: false })
   async deleteHouse(
     @Arg("id") id: string,
     @Ctx() ctx: AuthorizedContext
@@ -174,6 +174,7 @@ export class HouseResolver {
     await ctx.prisma.house.delete({
       where: { id: houseId },
     });
+
     return true;
   }
 }
